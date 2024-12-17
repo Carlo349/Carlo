@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retrieve Data</title>
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+<body class="bg-success-subtle">
+    <header class="p-3 bg-dark">
+        <div class="row m-0">
+            <div class="col">
+                <a href="index.html" class="text-decoration-none"><h4 class="fw-bold text-white text-end pe-3">Update Employee Record</h4></a>
+            </div>
+        </div>
+
+    </header>
+    <div class="container mt-5">
+        <table id="data-table" class="table table-striped table-bordered">
+            <thead class="text-center table-dark">
+                <tr>
+                    <th>User Id</th>
+                    <th>Username</th>
+                    <th>Gender</th>
+                    <th>Password</th>
+                    <th>Action</th>
+                </tr>
+            </thead> 
+            <tbody id="data-table-body" class="text-center">
+                <!-- Data rows will be appended here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal for Edit -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="updateModal" aria-hidden="true">
+        <div class="modal-dialog position-absolute top-50 start-50 translate-middle w-100">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateModal">Update User Information</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editForm">
+                        <div class="mb-3">
+                            <input type="hidden" id="editIndex">
+                            <input type="text" class="form-control" id="editUserId" placeholder="User ID">
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="editUsername" placeholder="Username">
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="editGender" placeholder="Gender">
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="editPassword" placeholder="Password">
+                        </div>
+                        <button type="button" class="btn btn-dark w-100" onclick="updateUserData()">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Fetch stored data from localStorage
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+
+            // Check if data exists
+            if (users.length > 0) {
+                const tableBody = $('#data-table-body');
+                tableBody.empty(); // Clear any existing rows
+
+                users.forEach((user, index) => {
+                    const row = $('<tr></tr>');
+                    row.append($('<td></td>').text(user.userId));
+                    row.append($('<td></td>').text(user.username));
+                    row.append($('<td></td>').text(user.Gender));
+                    row.append($('<td></td>').text(user.password));
+
+                    // Add actions (Edit/Delete)
+                    const actionCell = $('<td></td>');
+
+                    // Edit Button
+                    const editBtn = $('<button class="btn btn-warning btn-sm">Edit</button>').click(function() {
+                        openEditModal(index);
+                    });
+                    actionCell.append(editBtn);
+
+                    // Delete Button
+                    const deleteBtn = $('<button class="btn btn-danger btn-sm ms-2">Delete</button>').click(function() {
+                        deleteData(index);
+                    });
+                    actionCell.append(deleteBtn);
+
+                    row.append(actionCell);
+                    tableBody.append(row);
+                });
+            } else {
+                $('#data-table-body').append('<tr><td colspan="5">No data found.</td></tr>');
+            }
+        });
+
+        // Open Edit Modal
+        function openEditModal(index) {
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const user = users[index];
+
+            // Fill the modal fields with user data
+            $('#editIndex').val(index);
+            $('#editUserId').val(user.userId);
+            $('#editUsername').val(user.username);
+            $('#editGender').val(user.Gender);
+            $('#editPassword').val(user.password);
+
+            // Show the modal
+            $('#editModal').modal('show');
+        }
+
+        // Update user data
+        function updateUserData() {
+            const index = $('#editIndex').val();
+            const updatedUserId = $('#editUserId').val();
+            const updatedUsername = $('#editUsername').val();
+            const updatedGender = $('#editGender').val();
+            const updatedPassword = $('#editPassword').val();
+
+            // Validation
+            if (updatedUserId && updatedUsername && updatedGender && updatedPassword) {
+                let users = JSON.parse(localStorage.getItem('users')) || [];
+
+                // Update the user data
+                users[index] = {
+                    userId: updatedUserId,
+                    username: updatedUsername,
+                    Gender: updatedGender,
+                    password: updatedPassword
+                };
+
+                // Save updated data to localStorage
+                localStorage.setItem('users', JSON.stringify(users));
+
+                // Hide the modal
+                $('#editModal').modal('hide');
+
+                alert('Data updated successfully!');
+                location.reload(); // Refresh the page
+            } else {
+                alert('All fields are required!');
+            }
+        }
+
+        // Delete user data
+        function deleteData(index) {
+            if (confirm('Are you sure you want to delete this record?')) {
+                let users = JSON.parse(localStorage.getItem('users')) || [];
+                users.splice(index, 1); // Remove the user from the array
+
+                localStorage.setItem('users', JSON.stringify(users));
+
+                alert('Record deleted successfully!');
+                location.reload(); // Refresh the page
+            }
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>
